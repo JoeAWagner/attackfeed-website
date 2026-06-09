@@ -1,118 +1,203 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Article } from "@/lib/db";
-import { getCategoryBySlug } from "@/lib/categories";
-import { timeAgo, stripHtml, truncate } from "@/lib/utils";
+import { getCategoryBySlug, Category } from "@/lib/categories";
+import { timeAgo, stripHtml, truncate, detectSeverity } from "@/lib/utils";
 
 interface Props {
   article: Article;
   featured?: boolean;
 }
 
-const SOURCE_COLORS: Record<string, string> = {
-  "The Hacker News": "text-accent-cyan",
-  "Krebs on Security": "text-accent-red",
-  "Bleeping Computer": "text-accent-yellow",
-  "CISA Alerts": "text-accent-yellow",
-  "CISA Current Activity": "text-accent-yellow",
-  "Zero Day Initiative": "text-accent-red",
-  "Exploit-DB": "text-accent-red",
-  "EFF Deeplinks": "text-accent-purple",
-  "Google Project Zero": "text-accent-green",
+const GRADIENT_MAP: Record<string, string> = {
+  news: "gradient-cyber-cyan",
+  "gov-alerts": "gradient-cyber-yellow",
+  vulnerabilities: "gradient-cyber-red",
+  privacy: "gradient-cyber-purple",
+  fraud: "gradient-cyber-orange",
 };
 
-function getSourceColor(source: string): string {
-  return SOURCE_COLORS[source] ?? "text-text-secondary";
+const CARD_BORDER_MAP: Record<string, string> = {
+  news: "card-border-cyan",
+  "gov-alerts": "card-border-yellow",
+  vulnerabilities: "card-border-red",
+  privacy: "card-border-purple",
+  fraud: "card-border-orange",
+};
+
+const GLOW_MAP: Record<string, string> = {
+  news: "hover:glow-cyan",
+  "gov-alerts": "hover:glow-yellow",
+  vulnerabilities: "hover:glow-red",
+  privacy: "",
+  fraud: "",
+};
+
+const CATEGORY_ABBR: Record<string, string> = {
+  news: "NEWS",
+  "gov-alerts": "GOV",
+  vulnerabilities: "VULN",
+  privacy: "PRIV",
+  fraud: "FRAUD",
+};
+
+const SEVERITY_STYLES = {
+  critical: "bg-accent-red/15 text-accent-red border border-accent-red/30 animate-pulse-slow",
+  high: "bg-accent-yellow/15 text-accent-yellow border border-accent-yellow/30",
+};
+
+function SeverityBadge({ title }: { title: string }) {
+  const sev = detectSeverity(title);
+  if (!sev) return null;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${SEVERITY_STYLES[sev]}`}>
+      {sev === "critical" && <span className="h-1.5 w-1.5 rounded-full bg-accent-red inline-block live-dot" />}
+      {sev}
+    </span>
+  );
 }
 
 export default function ArticleCard({ article, featured = false }: Props) {
   const category = getCategoryBySlug(article.category);
-  const description = article.description ? truncate(stripHtml(article.description), featured ? 200 : 120) : null;
   const ago = timeAgo(article.published_at);
+  const cardBorder = CARD_BORDER_MAP[article.category] ?? "border border-border";
+  const glow = GLOW_MAP[article.category] ?? "";
 
   if (featured) {
-    return (
-      <a
-        href={article.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex flex-col rounded-lg border border-border bg-bg-card hover:border-accent-cyan/40 hover:bg-bg-hover transition-all duration-200 overflow-hidden"
-      >
-        {article.image_url && (
-          <div className="relative h-48 w-full overflow-hidden bg-bg-primary">
-            <Image
-              src={article.image_url}
-              alt={article.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              unoptimized
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-bg-card/80 to-transparent" />
-          </div>
-        )}
-        <div className="flex flex-col gap-2 p-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            {category && (
-              <span className={`text-xs font-mono font-medium px-2 py-0.5 rounded border ${category.tailwindBg} ${category.tailwindText} ${category.tailwindBorder}`}>
-                {category.name}
-              </span>
-            )}
-            <span className={`text-xs font-medium ${getSourceColor(article.source)}`}>
-              {article.source}
-            </span>
-          </div>
-          <h2 className="font-semibold text-text-primary group-hover:text-accent-cyan transition-colors leading-snug">
-            {article.title}
-          </h2>
-          {description && (
-            <p className="text-sm text-text-secondary leading-relaxed">{description}</p>
-          )}
-          <div className="flex items-center gap-2 mt-auto pt-2">
-            <svg className="h-3.5 w-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-xs text-text-muted">{ago}</span>
-          </div>
-        </div>
-      </a>
-    );
+    return <FeaturedCard article={article} category={category} ago={ago} />;
   }
+
+  const description = article.description
+    ? truncate(stripHtml(article.description), 130)
+    : null;
 
   return (
     <a
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex gap-3 p-3 rounded-lg border border-border bg-bg-card hover:border-accent-cyan/30 hover:bg-bg-hover transition-all duration-150"
+      className={`group flex gap-3 p-3.5 rounded-xl transition-all duration-200 ${cardBorder} ${glow}`}
     >
+      {/* Category accent bar */}
+      <div
+        className="w-0.5 shrink-0 rounded-full self-stretch"
+        style={{ backgroundColor: category?.accentColor ?? "#334155" }}
+      />
+
+      {/* Thumbnail */}
       {article.image_url && (
-        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded bg-bg-primary">
-          <Image
-            src={article.image_url}
-            alt={article.title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
+        <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-bg-primary">
+          <Image src={article.image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
         </div>
       )}
-      <div className="flex flex-col gap-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          {category && (
-            <span className={`text-xs font-mono px-1.5 py-px rounded border ${category.tailwindBg} ${category.tailwindText} ${category.tailwindBorder}`}>
-              {category.name}
-            </span>
-          )}
-          <span className={`text-xs ${getSourceColor(article.source)}`}>{article.source}</span>
-          <span className="text-xs text-text-muted">{ago}</span>
+
+      {/* Content */}
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className="text-[10px] font-mono font-semibold uppercase tracking-widest px-1.5 py-px rounded"
+            style={{ color: category?.accentColor, backgroundColor: `${category?.accentColor}18` }}
+          >
+            {CATEGORY_ABBR[article.category] ?? article.category}
+          </span>
+          <SeverityBadge title={article.title} />
+          <span className="text-xs font-medium text-text-secondary">{article.source}</span>
+          <span className="text-text-muted text-[11px] ml-auto shrink-0">{ago}</span>
         </div>
-        <h3 className="text-sm font-medium text-text-primary group-hover:text-accent-cyan transition-colors leading-snug line-clamp-2">
+
+        <h3 className="text-sm font-semibold text-text-primary group-hover:text-white transition-colors leading-snug line-clamp-2">
           {article.title}
         </h3>
+
         {description && (
-          <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed">{description}</p>
+          <p className="text-[12px] text-text-secondary leading-relaxed line-clamp-1 hidden sm:block">
+            {description}
+          </p>
         )}
+      </div>
+    </a>
+  );
+}
+
+function FeaturedCard({
+  article,
+  category,
+  ago,
+}: {
+  article: Article;
+  category: Category | undefined;
+  ago: string;
+}) {
+  const gradient = GRADIENT_MAP[article.category] ?? "gradient-cyber-cyan";
+  const description = article.description
+    ? truncate(stripHtml(article.description), 220)
+    : null;
+
+  return (
+    <a
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col rounded-xl overflow-hidden border border-white/[0.07] bg-bg-card hover:border-white/[0.14] transition-all duration-200"
+      style={{ boxShadow: `0 0 0 1px transparent, inset 0 0 40px rgba(0,0,0,0.2)` }}
+    >
+      {/* Header area — works without image */}
+      <div className={`relative overflow-hidden ${article.image_url ? "" : "min-h-[120px]"}`}>
+        {article.image_url ? (
+          <div className="relative h-44 w-full overflow-hidden">
+            <Image src={article.image_url} alt="" fill className="object-cover opacity-60 group-hover:opacity-75 transition-opacity" unoptimized />
+            <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-bg-card/60 to-transparent" />
+          </div>
+        ) : (
+          <div className={`relative scanlines ${gradient} px-5 pt-5 pb-3`}>
+            {/* Decorative grid lines */}
+            <div className="absolute inset-0 grid-bg opacity-40" />
+            {/* Large background letter */}
+            <div
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[80px] font-mono font-bold opacity-[0.06] select-none leading-none"
+              style={{ color: category?.accentColor }}
+            >
+              {CATEGORY_ABBR[article.category] ?? "//"}
+            </div>
+            <div className="relative flex items-center gap-2">
+              <span className="live-dot h-2 w-2 rounded-full inline-block" style={{ backgroundColor: category?.accentColor }} />
+              <span className="text-[10px] font-mono uppercase tracking-widest font-semibold" style={{ color: category?.accentColor }}>
+                {category?.name ?? article.category} · Live
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-col gap-2.5 p-4 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="text-[10px] font-mono font-semibold uppercase tracking-widest px-2 py-0.5 rounded border"
+            style={{ color: category?.accentColor, borderColor: `${category?.accentColor}40`, backgroundColor: `${category?.accentColor}12` }}
+          >
+            {category?.name ?? article.category}
+          </span>
+          <SeverityBadge title={article.title} />
+          <span className="text-xs font-medium text-text-secondary">{article.source}</span>
+        </div>
+
+        <h2 className="font-bold text-text-primary group-hover:text-white transition-colors leading-snug text-base">
+          {article.title}
+        </h2>
+
+        {description && (
+          <p className="text-sm text-text-secondary leading-relaxed line-clamp-3">{description}</p>
+        )}
+
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/[0.05]">
+          <span className="text-[11px] text-text-muted font-mono">{ago}</span>
+          <span className="text-xs text-text-secondary group-hover:text-white transition-colors flex items-center gap-1">
+            Read more
+            <svg className="h-3 w-3 -rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
       </div>
     </a>
   );

@@ -229,6 +229,28 @@ export async function getRecentArticlesByCategory(
   return result;
 }
 
+export async function getArticleCounts(): Promise<{ total: number; byCategory: Record<string, number>; lastUpdated: string | null }> {
+  await ensureDb();
+  const sql = getSql();
+  const rows = (await sql`
+    SELECT category, COUNT(*)::int as count
+    FROM articles
+    GROUP BY category
+  `) as unknown as { category: string; count: number }[];
+
+  const latest = (await sql`
+    SELECT MAX(created_at)::text as last_updated FROM articles
+  `) as unknown as { last_updated: string | null }[];
+
+  const byCategory: Record<string, number> = {};
+  let total = 0;
+  for (const row of rows) {
+    byCategory[row.category] = row.count;
+    total += row.count;
+  }
+  return { total, byCategory, lastUpdated: latest[0]?.last_updated ?? null };
+}
+
 export async function getLatestArticles(limit = 20): Promise<Article[]> {
   await ensureDb();
   const sql = getSql();

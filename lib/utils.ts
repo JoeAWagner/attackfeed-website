@@ -38,6 +38,15 @@ export function extractImageFromRss(item: Record<string, unknown>): string | nul
   return null;
 }
 
+export function detectSeverity(title: string): "critical" | "high" | null {
+  const t = title.toLowerCase();
+  if (/critical|zero.?day|0.?day|actively exploit|emergency|ransomware attack|data breach/.test(t))
+    return "critical";
+  if (/vulnerabilit|cve-\d|exploit|patch tuesday|malware|hack|backdoor|phish/.test(t))
+    return "high";
+  return null;
+}
+
 export function slugify(str: string): string {
   return str
     .toLowerCase()

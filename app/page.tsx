@@ -1,173 +1,158 @@
 import { Suspense } from "react";
-import { getLatestArticles, getRecentArticlesByCategory } from "@/lib/db";
+import {
+  getLatestArticles,
+  getRecentArticlesByCategory,
+  getArticleCounts,
+} from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
 import ArticleCard from "@/components/ArticleCard";
 import CategoryNav from "@/components/CategoryNav";
+import StatsRow from "@/components/StatsRow";
+import ThreatSidebar from "@/components/ThreatSidebar";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-async function HeroSection() {
-  const articles = await getLatestArticles(3);
+async function DashboardContent() {
+  const [latest, byCategory, counts] = await Promise.all([
+    getLatestArticles(40),
+    getRecentArticlesByCategory(5),
+    getArticleCounts(),
+  ]);
 
-  if (articles.length === 0) {
+  const featuredArticles = latest.slice(0, 3);
+  const feedArticles = latest.slice(3);
+
+  if (latest.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-bg-card p-12 text-center">
-        <div className="text-4xl mb-4">📡</div>
-        <h2 className="text-lg font-semibold text-text-primary mb-2">No articles yet</h2>
-        <p className="text-sm text-text-secondary">The feed fetch cron job hasn&apos;t run yet. Check back soon.</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="text-5xl mb-4 opacity-30">📡</div>
+        <h2 className="text-lg font-semibold text-text-primary mb-2">Feed is initializing</h2>
+        <p className="text-sm text-text-secondary max-w-sm">
+          The hourly cron job hasn&apos;t run yet. Trigger it manually or wait up to an hour.
+        </p>
+        <code className="mt-4 text-xs font-mono text-text-muted bg-bg-card border border-border rounded-lg px-4 py-2 block max-w-full overflow-x-auto">
+          GET /api/cron/fetch-feeds
+        </code>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {articles.map((article) => (
-        <ArticleCard key={article.id} article={article} featured />
-      ))}
-    </div>
-  );
-}
+    <div className="space-y-6">
+      {/* Stats row */}
+      <StatsRow
+        total={counts.total}
+        byCategory={counts.byCategory}
+        lastUpdated={counts.lastUpdated}
+      />
 
-async function LatestFeed() {
-  const articles = await getLatestArticles(30);
+      {/* Category filter pills */}
+      <CategoryNav />
 
-  if (articles.length === 0) return null;
+      {/* Featured 3-up grid */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="live-dot h-1.5 w-1.5 rounded-full bg-accent-cyan inline-block" />
+          <h2 className="text-[11px] font-mono font-semibold uppercase tracking-widest text-text-muted">
+            Latest
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {featuredArticles.map((article) => (
+            <ArticleCard key={article.id} article={article} featured />
+          ))}
+        </div>
+      </section>
 
-  return (
-    <div className="space-y-2">
-      {articles.map((article) => (
-        <ArticleCard key={article.id} article={article} />
-      ))}
-    </div>
-  );
-}
+      {/* Main two-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Feed — 2 cols */}
+        <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[11px] font-mono font-semibold uppercase tracking-widest text-text-muted">
+              Recent Articles
+            </h2>
+            <Link href="/search" className="text-xs text-text-muted hover:text-accent-cyan transition-colors font-mono">
+              Search archive →
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {feedArticles.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
 
-async function CategorySections() {
-  const byCategory = await getRecentArticlesByCategory(5);
+          {/* Per-category sections below the main feed */}
+          <div className="space-y-10 pt-6">
+            {CATEGORIES.map((cat) => {
+              const articles = byCategory[cat.slug] ?? [];
+              if (articles.length === 0) return null;
+              return (
+                <section key={cat.slug}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-3 w-px rounded-full" style={{ backgroundColor: cat.accentColor }} />
+                      <h2 className="text-[11px] font-mono font-semibold uppercase tracking-widest" style={{ color: cat.accentColor }}>
+                        {cat.name}
+                      </h2>
+                    </div>
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      className="text-[11px] text-text-muted hover:text-text-secondary transition-colors font-mono"
+                    >
+                      View all →
+                    </Link>
+                  </div>
+                  <div className="space-y-2">
+                    {articles.map((article) => (
+                      <ArticleCard key={article.id} article={article} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
 
-  return (
-    <div className="space-y-12">
-      {CATEGORIES.map((cat) => {
-        const articles = byCategory[cat.slug] ?? [];
-        if (articles.length === 0) return null;
-
-        return (
-          <section key={cat.slug}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`h-1 w-8 rounded-full ${cat.tailwindBg.replace("/10", "")}`}
-                  style={{ backgroundColor: cat.accentColor }} />
-                <h2 className={`font-mono font-semibold text-sm uppercase tracking-wider ${cat.tailwindText}`}>
-                  {cat.name}
-                </h2>
-              </div>
-              <Link
-                href={`/category/${cat.slug}`}
-                className="text-xs text-text-secondary hover:text-accent-cyan transition-colors"
-              >
-                View all →
-              </Link>
-            </div>
-            <div className="space-y-2">
-              {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+        {/* Sidebar — 1 col */}
+        <div className="lg:col-span-1">
+          <ThreatSidebar byCategory={byCategory} counts={counts.byCategory} />
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 space-y-10">
-      {/* Page header */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-accent-green animate-pulse" />
-          <span className="text-xs font-mono text-text-muted uppercase tracking-wider">Live Feed</span>
-        </div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          Cybersecurity Intelligence Feed
-        </h1>
-        <CategoryNav />
+    <div className="mx-auto max-w-7xl px-4 py-6">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+      </Suspense>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-12 rounded-xl bg-bg-card border border-border" />
+      <div className="flex gap-2">
+        {[...Array(6)].map((_, i) => <div key={i} className="h-8 w-24 rounded-full bg-bg-card" />)}
       </div>
-
-      {/* Featured / hero articles */}
-      <section>
-        <h2 className="text-xs font-mono font-semibold text-text-muted uppercase tracking-wider mb-4">
-          Latest Stories
-        </h2>
-        <Suspense fallback={<HeroSkeleton />}>
-          <HeroSection />
-        </Suspense>
-      </section>
-
-      {/* Two-column layout: feed + category sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main feed */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-            Recent Articles
-          </h2>
-          <Suspense fallback={<FeedSkeleton />}>
-            <LatestFeed />
-          </Suspense>
-          <div className="pt-2">
-            <Link
-              href="/category/news"
-              className="text-sm text-accent-cyan hover:underline"
-            >
-              View all news →
-            </Link>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => <div key={i} className="h-52 rounded-xl bg-bg-card" />)}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-2">
+          {[...Array(10)].map((_, i) => <div key={i} className="h-16 rounded-xl bg-bg-card" />)}
         </div>
-
-        {/* Category sections sidebar */}
-        <div className="lg:col-span-1">
-          <Suspense fallback={<SidebarSkeleton />}>
-            <CategorySections />
-          </Suspense>
+        <div className="space-y-4">
+          <div className="h-48 rounded-xl bg-bg-card" />
+          <div className="h-48 rounded-xl bg-bg-card" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function HeroSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-64 rounded-lg bg-bg-card border border-border animate-pulse" />
-      ))}
-    </div>
-  );
-}
-
-function FeedSkeleton() {
-  return (
-    <div className="space-y-2">
-      {[...Array(8)].map((_, i) => (
-        <div key={i} className="h-20 rounded-lg bg-bg-card border border-border animate-pulse" />
-      ))}
-    </div>
-  );
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="space-y-8">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="space-y-2">
-          <div className="h-4 w-32 rounded bg-bg-card animate-pulse" />
-          {[...Array(4)].map((_, j) => (
-            <div key={j} className="h-16 rounded-lg bg-bg-card border border-border animate-pulse" />
-          ))}
-        </div>
-      ))}
     </div>
   );
 }
