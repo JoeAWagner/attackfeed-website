@@ -1,0 +1,24 @@
+name: Fetch RSS Feeds
+
+on:
+  schedule:
+    # Every hour at :05 past the hour
+    - cron: "5 * * * *"
+  workflow_dispatch: # Allow manual runs
+
+jobs:
+  fetch:
+    name: Fetch and store feeds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call fetch-feeds API
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/fetch-feeds")
+          echo "HTTP status: $response"
+          if [ "$response" -ne 200 ]; then
+            echo "Feed fetch failed with status $response"
+            exit 1
+          fi
+          echo "Feed fetch succeeded"
