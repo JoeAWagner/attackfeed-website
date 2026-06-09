@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
           const publishedAt = item.isoDate ?? item.pubDate ?? new Date().toISOString();
           const rawDescription = item.contentSnippet ?? item.content ?? item["content:encoded"] ?? "";
           const description = truncate(stripHtml(rawDescription), 500) || null;
-          const imageUrl = extractImageFromRss(item as Record<string, unknown>);
+          const imageUrl = extractImageFromRss(item as Record<string, unknown>, feed.source);
 
           return {
             guid: guid.slice(0, 500),

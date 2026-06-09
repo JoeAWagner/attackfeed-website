@@ -87,7 +87,9 @@ export async function upsertArticles(
         ${article.description},
         ${article.image_url}
       )
-      ON CONFLICT (guid) DO NOTHING
+      ON CONFLICT (guid) DO UPDATE
+        SET image_url = EXCLUDED.image_url
+        WHERE articles.image_url IS NULL AND EXCLUDED.image_url IS NOT NULL
       RETURNING id
     `;
     if (result.length > 0) inserted++;

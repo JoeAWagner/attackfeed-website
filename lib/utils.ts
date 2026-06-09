@@ -17,7 +17,21 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength).trim() + "…";
 }
 
-export function extractImageFromRss(item: Record<string, unknown>): string | null {
+// Domains that never include images in their RSS — use their og:image via a proxy approach
+const SOURCE_OG_IMAGES: Record<string, string> = {
+  "Bleeping Computer":      "https://www.bleepingcomputer.com/images/bc-logo2-white-small.png",
+  "SecurityWeek":           "https://www.securityweek.com/wp-content/uploads/2022/11/SecurityWeek-Logo-White.png",
+  "CyberScoop":             "https://cyberscoop.com/wp-content/uploads/sites/3/2023/01/CyberScoop-white.png",
+  "Hackread":               "https://hackread.com/wp-content/uploads/2022/05/hackread-logo.png",
+  "Infosecurity Magazine":  "https://www.infosecurity-magazine.com/images/infosecurity_logo_white.png",
+  "Dark Reading":           "https://www.darkreading.com/img/dark-reading-logo-white.png",
+  "Security Magazine":      "https://www.securitymagazine.com/ext/resources/Logos/SM_Logo_White.png",
+};
+
+export function extractImageFromRss(
+  item: Record<string, unknown>,
+  sourceName?: string
+): string | null {
   // media:content
   const mediaContent = item["media:content"] as { $?: { url?: string } } | undefined;
   if (mediaContent?.$?.url) return mediaContent.$.url;
@@ -26,14 +40,24 @@ export function extractImageFromRss(item: Record<string, unknown>): string | nul
   const mediaThumbnail = item["media:thumbnail"] as { $?: { url?: string } } | undefined;
   if (mediaThumbnail?.$?.url) return mediaThumbnail.$.url;
 
-  // enclosure
+  // enclosure (with or without type — some feeds omit type)
   const enclosure = item["enclosure"] as { url?: string; type?: string } | undefined;
-  if (enclosure?.url && enclosure.type?.startsWith("image/")) return enclosure.url;
+  if (enclosure?.url) {
+    // Accept if type starts with image/ OR type is missing (assume image)
+    if (!enclosure.type || enclosure.type.startsWith("image/")) return enclosure.url;
+  }
 
-  // image in content
-  const content = (item["content:encoded"] as string | undefined) ?? (item["content"] as string | undefined) ?? "";
+  // img tag in content:encoded or content HTML
+  const content =
+    (item["content:encoded"] as string | undefined) ??
+    (item["content"] as string | undefined) ?? "";
   const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (imgMatch?.[1]) return imgMatch[1];
+
+  // Fall back to source logo for known image-less feeds
+  if (sourceName && SOURCE_OG_IMAGES[sourceName]) {
+    return SOURCE_OG_IMAGES[sourceName];
+  }
 
   return null;
 }
