@@ -26,6 +26,14 @@ function getSql() {
   return neon(url);
 }
 
+let dbReady = false;
+
+async function ensureDb() {
+  if (dbReady) return;
+  await setupDatabase();
+  dbReady = true;
+}
+
 export async function setupDatabase(): Promise<void> {
   const sql = getSql();
   await sql`
@@ -106,6 +114,7 @@ export async function getArticles({
   page?: number;
   perPage?: number;
 }): Promise<PaginatedResult> {
+  await ensureDb();
   const sql = getSql();
   const offset = (page - 1) * perPage;
 
@@ -113,25 +122,25 @@ export async function getArticles({
   let countResult: { count: string }[];
 
   if (category) {
-    articles = await sql`
+    articles = (await sql`
       SELECT * FROM articles
       WHERE category = ${category}
       ORDER BY published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
-    ` as Article[];
-    countResult = await sql`
+    `) as unknown as Article[];
+    countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
       WHERE category = ${category}
-    ` as { count: string }[];
+    `) as unknown as { count: string }[];
   } else {
-    articles = await sql`
+    articles = (await sql`
       SELECT * FROM articles
       ORDER BY published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
-    ` as Article[];
-    countResult = await sql`
+    `) as unknown as Article[];
+    countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
-    ` as { count: string }[];
+    `) as unknown as { count: string }[];
   }
 
   const total = parseInt(countResult[0].count, 10);
@@ -154,6 +163,7 @@ export async function searchArticles({
   page?: number;
   perPage?: number;
 }): Promise<PaginatedResult> {
+  await ensureDb();
   const sql = getSql();
   const offset = (page - 1) * perPage;
   const tsQuery = query.trim().split(/\s+/).join(" & ");
@@ -162,31 +172,31 @@ export async function searchArticles({
   let countResult: { count: string }[];
 
   if (category) {
-    articles = await sql`
+    articles = (await sql`
       SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), to_tsquery('english', ${tsQuery})) AS rank
       FROM articles
       WHERE category = ${category}
         AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
-    ` as Article[];
-    countResult = await sql`
+    `) as unknown as Article[];
+    countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
       WHERE category = ${category}
         AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
-    ` as { count: string }[];
+    `) as unknown as { count: string }[];
   } else {
-    articles = await sql`
+    articles = (await sql`
       SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), to_tsquery('english', ${tsQuery})) AS rank
       FROM articles
       WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
-    ` as Article[];
-    countResult = await sql`
+    `) as unknown as Article[];
+    countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
       WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
-    ` as { count: string }[];
+    `) as unknown as { count: string }[];
   }
 
   const total = parseInt(countResult[0]?.count ?? "0", 10);
@@ -198,24 +208,21 @@ export async function searchArticles({
   };
 }
 
-export async function getRecentArticlesByCategory(limit = 6): Promise<Record<string, Article[]>> {
+export async function getRecentArticlesByCategory(
+  limit = 6
+): Promise<Record<string, Article[]>> {
+  await ensureDb();
   const sql = getSql();
-  const articles = await sql`
-    SELECT DISTINCT ON (category) * FROM (
-      SELECT * FROM articles ORDER BY published_at DESC
-    ) sub
-  ` as Article[];
-
+  const categories = ["news", "gov-alerts", "vulnerabilities", "privacy", "fraud"];
   const result: Record<string, Article[]> = {};
 
-  const categories = ["news", "gov-alerts", "vulnerabilities", "privacy", "fraud"];
   for (const cat of categories) {
-    const rows = await sql`
+    const rows = (await sql`
       SELECT * FROM articles
       WHERE category = ${cat}
       ORDER BY published_at DESC
       LIMIT ${limit}
-    ` as Article[];
+    `) as unknown as Article[];
     result[cat] = rows;
   }
 
@@ -223,6 +230,7 @@ export async function getRecentArticlesByCategory(limit = 6): Promise<Record<str
 }
 
 export async function getLatestArticles(limit = 20): Promise<Article[]> {
+  await ensureDb();
   const sql = getSql();
   const rows = await sql`
     SELECT * FROM articles

@@ -5,7 +5,7 @@ import ArticleCard from "@/components/ArticleCard";
 import CategoryNav from "@/components/CategoryNav";
 import Link from "next/link";
 
-export const revalidate = 3600; // re-render at most every hour
+export const dynamic = "force-dynamic";
 
 async function HeroSection() {
   const articles = await getLatestArticles(3);

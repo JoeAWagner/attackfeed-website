@@ -6,7 +6,7 @@ import ArticleCard from "@/components/ArticleCard";
 import CategoryNav from "@/components/CategoryNav";
 import Pagination from "@/components/Pagination";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   return ALL_CATEGORY_SLUGS.map((slug) => ({ slug }));
