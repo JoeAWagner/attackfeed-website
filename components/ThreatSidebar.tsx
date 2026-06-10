@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Article } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
-import { timeAgo, stripHtml, truncate } from "@/lib/utils";
+import { timeAgo } from "@/lib/utils";
+import AdUnit from "./AdUnit";
 
 interface Props {
   byCategory: Record<string, Article[]>;
@@ -47,6 +48,9 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
           })}
         </div>
       </div>
+
+      {/* Sponsored slot — renders only when AdSense env vars are set */}
+      <AdUnit slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR ?? ""} />
 
       {/* Per-category latest */}
       {SIDEBAR_CATEGORIES.map((slug) => {
