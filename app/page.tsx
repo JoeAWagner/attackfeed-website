@@ -9,6 +9,7 @@ import ArticleCard from "@/components/ArticleCard";
 import CategoryNav from "@/components/CategoryNav";
 import StatsRow from "@/components/StatsRow";
 import ThreatSidebar from "@/components/ThreatSidebar";
+import Banner from "@/components/Banner";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -126,7 +127,8 @@ async function DashboardContent() {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <Banner />
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
       </Suspense>

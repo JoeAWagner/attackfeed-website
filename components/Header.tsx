@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
+import Logo from "./Logo";
 
 export default function Header() {
   const pathname = usePathname();
@@ -28,14 +29,9 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 group-hover:border-accent-cyan/40 transition-colors">
-              <svg className="h-3.5 w-3.5 text-accent-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
+            <Logo size={28} className="group-hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.5)] transition-all" />
             <span className="font-mono font-bold text-base text-text-primary group-hover:text-white transition-colors tracking-tight">
-              AttackFeed
+              Attack<span className="text-accent-cyan">Feed</span>
             </span>
             <span className="hidden sm:flex items-center gap-1 text-[10px] text-accent-green font-mono border border-accent-green/20 bg-accent-green/10 rounded px-1.5 py-0.5">
               <span className="live-dot h-1.5 w-1.5 rounded-full bg-accent-green inline-block" />
