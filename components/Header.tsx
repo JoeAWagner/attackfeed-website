@@ -32,7 +32,7 @@ export default function Header() {
             <img
               src="/brand/attackfeed-icon-color-animated.svg"
               alt=""
-              className="h-7 w-7 rounded-lg group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] transition-all"
+              className="h-10 w-10 rounded-lg group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] transition-all"
             />
             <span className="font-mono font-bold text-base text-text-primary group-hover:text-white transition-colors tracking-tight">
               attack<span className="text-accent-red">_</span><span className="text-accent-cyan">Feed</span>

@@ -13,12 +13,12 @@ export default function Banner() {
         style={{ background: "linear-gradient(135deg, #FF3B47, #8B5CF6, #38BDF8)" }}
       />
 
-      <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-4 sm:px-7 sm:py-5">
+      <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-3 sm:px-7 sm:py-4">
         {/* Terminal icon with blinking cursor */}
         <img
           src="/brand/attackfeed-icon-color-animated.svg"
           alt="AttackFeed"
-          className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 drop-shadow-[0_0_14px_rgba(139,92,246,0.35)]"
+          className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 drop-shadow-[0_0_14px_rgba(139,92,246,0.35)]"
         />
 
         <div className="min-w-0">
