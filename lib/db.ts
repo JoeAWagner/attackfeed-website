@@ -104,6 +104,15 @@ export async function upsertArticles(
   return result.filter((r) => r.inserted).length;
 }
 
+export async function getExistingGuids(guids: string[]): Promise<Set<string>> {
+  if (guids.length === 0) return new Set();
+  const sql = getSql();
+  const rows = (await sql`
+    SELECT guid FROM articles WHERE guid = ANY(${guids})
+  `) as unknown as { guid: string }[];
+  return new Set(rows.map((r) => r.guid));
+}
+
 export async function pruneOldArticles(): Promise<number> {
   const sql = getSql();
   const result = await sql`

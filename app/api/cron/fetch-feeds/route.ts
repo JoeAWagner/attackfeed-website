@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Parser from "rss-parser";
-import { upsertArticles, pruneOldArticles, setupDatabase } from "@/lib/db";
+import { upsertArticles, pruneOldArticles, setupDatabase, getExistingGuids } from "@/lib/db";
 import { FEEDS } from "@/lib/feeds";
 import { extractImageFromRss, stripHtml, truncate } from "@/lib/utils";
+import { fetchOgImages } from "@/lib/og";
+
+// Feed parsing + og:image fetches need more than the default timeout
+export const maxDuration = 120;
 
 type RssItem = {
   guid?: string;
@@ -45,6 +49,9 @@ export async function GET(req: NextRequest) {
     let totalInserted = 0;
     let feedsProcessed = 0;
     let feedErrors = 0;
+    let ogImagesFound = 0;
+    // Cap article-page fetches per run so the function stays well under maxDuration
+    let ogBudgetLeft = 60;
     const errors: string[] = [];
 
     for (const feed of FEEDS) {
@@ -71,6 +78,30 @@ export async function GET(req: NextRequest) {
           };
         }).filter((a) => a.url && a.title !== "(untitled)");
 
+        // For new articles whose RSS had no image, try the article page's og:image.
+        // Only new guids — otherwise we'd re-fetch the same pages every hour.
+        if (ogBudgetLeft > 0) {
+          const candidates = articles.filter((a) => !a.image_url);
+          if (candidates.length > 0) {
+            const existing = await getExistingGuids(candidates.map((a) => a.guid));
+            const newWithoutImage = candidates.filter((a) => !existing.has(a.guid));
+            if (newWithoutImage.length > 0) {
+              const ogImages = await fetchOgImages(
+                newWithoutImage.map((a) => a.url),
+                { budget: ogBudgetLeft }
+              );
+              ogBudgetLeft -= Math.min(newWithoutImage.length, ogBudgetLeft);
+              for (const a of newWithoutImage) {
+                const img = ogImages.get(a.url);
+                if (img) {
+                  a.image_url = img;
+                  ogImagesFound++;
+                }
+              }
+            }
+          }
+        }
+
         const inserted = await upsertArticles(articles);
         totalInserted += inserted;
         feedsProcessed++;
@@ -88,6 +119,7 @@ export async function GET(req: NextRequest) {
       feedsProcessed,
       feedErrors,
       totalInserted,
+      ogImagesFound,
       pruned,
       errors: errors.length > 0 ? errors : undefined,
     });
