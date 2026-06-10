@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ALL_CATEGORY_SLUGS } from "./categories";
 
 export interface Article {
   id: number;
@@ -71,30 +72,36 @@ export async function setupDatabase(): Promise<void> {
 export async function upsertArticles(
   articles: Omit<Article, "id" | "created_at">[]
 ): Promise<number> {
-  if (articles.length === 0) return 0;
+  // Dedupe by guid — a multi-row INSERT ... ON CONFLICT errors if the same
+  // guid appears twice in one statement
+  const seen = new Set<string>();
+  const unique = articles.filter((a) => {
+    if (seen.has(a.guid)) return false;
+    seen.add(a.guid);
+    return true;
+  });
+  if (unique.length === 0) return 0;
+
   const sql = getSql();
-  let inserted = 0;
-  for (const article of articles) {
-    const result = await sql`
-      INSERT INTO articles (guid, title, url, source, category, published_at, description, image_url)
-      VALUES (
-        ${article.guid},
-        ${article.title},
-        ${article.url},
-        ${article.source},
-        ${article.category},
-        ${article.published_at},
-        ${article.description},
-        ${article.image_url}
-      )
-      ON CONFLICT (guid) DO UPDATE
-        SET image_url = EXCLUDED.image_url
-        WHERE articles.image_url IS NULL AND EXCLUDED.image_url IS NOT NULL
-      RETURNING id
-    `;
-    if (result.length > 0) inserted++;
-  }
-  return inserted;
+  const result = (await sql`
+    INSERT INTO articles (guid, title, url, source, category, published_at, description, image_url)
+    SELECT * FROM unnest(
+      ${unique.map((a) => a.guid)}::text[],
+      ${unique.map((a) => a.title)}::text[],
+      ${unique.map((a) => a.url)}::text[],
+      ${unique.map((a) => a.source)}::text[],
+      ${unique.map((a) => a.category)}::text[],
+      ${unique.map((a) => a.published_at)}::timestamptz[],
+      ${unique.map((a) => a.description)}::text[],
+      ${unique.map((a) => a.image_url)}::text[]
+    )
+    ON CONFLICT (guid) DO UPDATE
+      SET image_url = EXCLUDED.image_url
+      WHERE articles.image_url IS NULL AND EXCLUDED.image_url IS NOT NULL
+    RETURNING (xmax = 0) AS inserted
+  `) as unknown as { inserted: boolean }[];
+
+  return result.filter((r) => r.inserted).length;
 }
 
 export async function pruneOldArticles(): Promise<number> {
@@ -168,36 +175,36 @@ export async function searchArticles({
   await ensureDb();
   const sql = getSql();
   const offset = (page - 1) * perPage;
-  const tsQuery = query.trim().split(/\s+/).join(" & ");
+  
 
   let articles: Article[];
   let countResult: { count: string }[];
 
   if (category) {
     articles = (await sql`
-      SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), to_tsquery('english', ${tsQuery})) AS rank
+      SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), websearch_to_tsquery('english', ${query})) AS rank
       FROM articles
       WHERE category = ${category}
-        AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
+        AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
     countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
       WHERE category = ${category}
-        AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
+        AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
     `) as unknown as { count: string }[];
   } else {
     articles = (await sql`
-      SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), to_tsquery('english', ${tsQuery})) AS rank
+      SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), websearch_to_tsquery('english', ${query})) AS rank
       FROM articles
-      WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
+      WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
     countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
-      WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ to_tsquery('english', ${tsQuery})
+      WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
     `) as unknown as { count: string }[];
   }
 
@@ -215,19 +222,23 @@ export async function getRecentArticlesByCategory(
 ): Promise<Record<string, Article[]>> {
   await ensureDb();
   const sql = getSql();
-  const categories = ["news", "gov-alerts", "vulnerabilities", "privacy", "fraud"];
+
+  const perCategory = await Promise.all(
+    ALL_CATEGORY_SLUGS.map(
+      (cat) =>
+        sql`
+          SELECT * FROM articles
+          WHERE category = ${cat}
+          ORDER BY published_at DESC
+          LIMIT ${limit}
+        ` as unknown as Promise<Article[]>
+    )
+  );
+
   const result: Record<string, Article[]> = {};
-
-  for (const cat of categories) {
-    const rows = (await sql`
-      SELECT * FROM articles
-      WHERE category = ${cat}
-      ORDER BY published_at DESC
-      LIMIT ${limit}
-    `) as unknown as Article[];
-    result[cat] = rows;
-  }
-
+  ALL_CATEGORY_SLUGS.forEach((cat, i) => {
+    result[cat] = perCategory[i];
+  });
   return result;
 }
 

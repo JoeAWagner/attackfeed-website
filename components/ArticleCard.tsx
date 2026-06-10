@@ -45,6 +45,28 @@ const SEVERITY_STYLES = {
   high: "bg-accent-yellow/15 text-accent-yellow border border-accent-yellow/30",
 };
 
+function sourceInitials(source: string): string {
+  const words = source.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return source.slice(0, 2).toUpperCase();
+}
+
+function MonogramTile({ source, color }: { source: string; color?: string }) {
+  return (
+    <div
+      className="relative h-14 w-20 shrink-0 rounded-lg overflow-hidden flex items-center justify-center"
+      style={{
+        background: `linear-gradient(135deg, ${color ?? "#334155"}20, ${color ?? "#334155"}08)`,
+        border: `1px solid ${color ?? "#334155"}25`,
+      }}
+    >
+      <span className="font-mono font-bold text-sm select-none" style={{ color: color ?? "#8b949e", opacity: 0.85 }}>
+        {sourceInitials(source)}
+      </span>
+    </div>
+  );
+}
+
 function SeverityBadge({ title }: { title: string }) {
   const sev = detectSeverity(title);
   if (!sev) return null;
@@ -83,11 +105,13 @@ export default function ArticleCard({ article, featured = false }: Props) {
         style={{ backgroundColor: category?.accentColor ?? "#334155" }}
       />
 
-      {/* Thumbnail */}
-      {article.image_url && (
+      {/* Thumbnail — real image or source monogram tile */}
+      {article.image_url ? (
         <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-bg-primary">
           <Image src={article.image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
         </div>
+      ) : (
+        <MonogramTile source={article.source} color={category?.accentColor} />
       )}
 
       {/* Content */}

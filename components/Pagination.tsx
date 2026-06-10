@@ -11,8 +11,11 @@ export default function Pagination({ currentPage, totalPages, basePath }: Props)
 
   const pages = getPagesArray(currentPage, totalPages);
 
+  // basePath may already carry query params (e.g. /search?q=foo)
+  const sep = basePath.includes("?") ? "&" : "?";
+
   function href(page: number) {
-    return page === 1 ? basePath : `${basePath}?page=${page}`;
+    return page === 1 ? basePath : `${basePath}${sep}page=${page}`;
   }
 
   return (

@@ -31,11 +31,11 @@ const parser = new Parser({
 });
 
 export async function GET(req: NextRequest) {
-  // Verify cron secret
+  // Verify cron secret — fail closed if it isn't configured
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
           const publishedAt = item.isoDate ?? item.pubDate ?? new Date().toISOString();
           const rawDescription = item.contentSnippet ?? item.content ?? item["content:encoded"] ?? "";
           const description = truncate(stripHtml(rawDescription), 500) || null;
-          const imageUrl = extractImageFromRss(item as Record<string, unknown>, feed.source);
+          const imageUrl = extractImageFromRss(item as Record<string, unknown>);
 
           return {
             guid: guid.slice(0, 500),

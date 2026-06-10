@@ -17,21 +17,7 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength).trim() + "…";
 }
 
-// Domains that never include images in their RSS — use their og:image via a proxy approach
-const SOURCE_OG_IMAGES: Record<string, string> = {
-  "Bleeping Computer":      "https://www.bleepingcomputer.com/images/bc-logo2-white-small.png",
-  "SecurityWeek":           "https://www.securityweek.com/wp-content/uploads/2022/11/SecurityWeek-Logo-White.png",
-  "CyberScoop":             "https://cyberscoop.com/wp-content/uploads/sites/3/2023/01/CyberScoop-white.png",
-  "Hackread":               "https://hackread.com/wp-content/uploads/2022/05/hackread-logo.png",
-  "Infosecurity Magazine":  "https://www.infosecurity-magazine.com/images/infosecurity_logo_white.png",
-  "Dark Reading":           "https://www.darkreading.com/img/dark-reading-logo-white.png",
-  "Security Magazine":      "https://www.securitymagazine.com/ext/resources/Logos/SM_Logo_White.png",
-};
-
-export function extractImageFromRss(
-  item: Record<string, unknown>,
-  sourceName?: string
-): string | null {
+export function extractImageFromRss(item: Record<string, unknown>): string | null {
   // media:content
   const mediaContent = item["media:content"] as { $?: { url?: string } } | undefined;
   if (mediaContent?.$?.url) return mediaContent.$.url;
@@ -54,13 +40,9 @@ export function extractImageFromRss(
   const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (imgMatch?.[1]) return imgMatch[1];
 
-  // Fall back to source logo for known image-less feeds
-  if (sourceName && SOURCE_OG_IMAGES[sourceName]) {
-    return SOURCE_OG_IMAGES[sourceName];
-  }
-
   return null;
 }
+
 
 export function detectSeverity(title: string): "critical" | "high" | null {
   const t = title.toLowerCase();

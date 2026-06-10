@@ -103,7 +103,8 @@ export default async function SearchPage({
         <>
           <div className="flex items-center gap-2">
             <span className="text-sm text-text-secondary">
-              <span className="text-text-primary font-medium">{result.total.toLocaleString()}</span> results for &ldquo;
+              <span className="text-text-primary font-medium">{result.total.toLocaleString()}</span>{" "}
+              {result.total === 1 ? "result" : "results"} for &ldquo;
               <span className="text-accent-cyan">{query}</span>&rdquo;
             </span>
           </div>
