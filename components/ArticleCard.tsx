@@ -56,8 +56,8 @@ function MonogramTile({ source, color }: { source: string; color?: string }) {
     <div
       className="relative h-14 w-20 shrink-0 rounded-lg overflow-hidden flex items-center justify-center"
       style={{
-        background: `linear-gradient(135deg, ${color ?? "#334155"}20, ${color ?? "#334155"}08)`,
-        border: `1px solid ${color ?? "#334155"}25`,
+        background: `linear-gradient(135deg, ${color ?? "#4A5568"}20, ${color ?? "#4A5568"}08)`,
+        border: `1px solid ${color ?? "#4A5568"}25`,
       }}
     >
       <span className="font-mono font-bold text-sm select-none" style={{ color: color ?? "#8b949e", opacity: 0.85 }}>
@@ -102,7 +102,7 @@ export default function ArticleCard({ article, featured = false }: Props) {
       {/* Category accent bar */}
       <div
         className="w-0.5 shrink-0 rounded-full self-stretch"
-        style={{ backgroundColor: category?.accentColor ?? "#334155" }}
+        style={{ backgroundColor: category?.accentColor ?? "#4A5568" }}
       />
 
       {/* Thumbnail — real image or source monogram tile */}

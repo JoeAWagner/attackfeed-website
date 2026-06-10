@@ -8,30 +8,33 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // Palette from the AttackFeed brand kit: red #FF3B47 -> purple
+      // #8B5CF6 -> blue #38BDF8 on near-black #0B0E13. Yellow/orange/green
+      // (category + status colors) use the matching Tailwind-400 family.
       colors: {
         bg: {
-          primary: "#080c12",
-          secondary: "#0d1117",
-          card: "#131920",
-          hover: "#1a2233",
+          primary: "#0B0E13",
+          secondary: "#0E1219",
+          card: "#12171F",
+          hover: "#1A2230",
         },
         accent: {
-          cyan: "#00d4ff",
-          "cyan-dim": "#0077a8",
-          red: "#f85149",
-          yellow: "#e3b341",
-          orange: "#ffa657",
-          purple: "#bc8cff",
-          green: "#3fb950",
+          cyan: "#38BDF8",
+          "cyan-dim": "#0C7ABF",
+          red: "#FF3B47",
+          yellow: "#FBBF24",
+          orange: "#FB923C",
+          purple: "#8B5CF6",
+          green: "#34D399",
         },
         border: {
-          DEFAULT: "#21262d",
-          bright: "#30363d",
+          DEFAULT: "#2A3340",
+          bright: "#3A4754",
         },
         text: {
-          primary: "#e6edf3",
-          secondary: "#8b949e",
-          muted: "#484f58",
+          primary: "#E8EDF2",
+          secondary: "#7A8694",
+          muted: "#4A5568",
         },
       },
       fontFamily: {

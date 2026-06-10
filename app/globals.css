@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --scrollbar-bg: #080c12;
-  --scrollbar-thumb: #1e2733;
-  --scrollbar-thumb-hover: #2d3a4a;
+  --scrollbar-bg: #0B0E13;
+  --scrollbar-thumb: #2A3340;
+  --scrollbar-thumb-hover: #3A4754;
 }
 
 * {
@@ -19,46 +19,46 @@
 *::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
-html { background-color: #080c12; }
-::selection { background: rgba(0,212,255,0.2); color: #e6edf3; }
+html { background-color: #0B0E13; }
+::selection { background: rgba(56,189,248,0.2); color: #E8EDF2; }
 
 @layer utilities {
   /* Gradient border cards */
   .card-border-cyan {
     border: 1px solid transparent;
     background:
-      linear-gradient(#0f1520, #0f1520) padding-box,
-      linear-gradient(135deg, rgba(0,212,255,0.35) 0%, rgba(0,212,255,0.05) 100%) border-box;
+      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(135deg, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.05) 100%) border-box;
   }
   .card-border-yellow {
     border: 1px solid transparent;
     background:
-      linear-gradient(#0f1520, #0f1520) padding-box,
-      linear-gradient(135deg, rgba(227,179,65,0.35) 0%, rgba(227,179,65,0.05) 100%) border-box;
+      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(251,191,36,0.05) 100%) border-box;
   }
   .card-border-red {
     border: 1px solid transparent;
     background:
-      linear-gradient(#0f1520, #0f1520) padding-box,
-      linear-gradient(135deg, rgba(248,81,73,0.35) 0%, rgba(248,81,73,0.05) 100%) border-box;
+      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(135deg, rgba(255,59,71,0.35) 0%, rgba(255,59,71,0.05) 100%) border-box;
   }
   .card-border-purple {
     border: 1px solid transparent;
     background:
-      linear-gradient(#0f1520, #0f1520) padding-box,
-      linear-gradient(135deg, rgba(188,140,255,0.35) 0%, rgba(188,140,255,0.05) 100%) border-box;
+      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(139,92,246,0.05) 100%) border-box;
   }
   .card-border-orange {
     border: 1px solid transparent;
     background:
-      linear-gradient(#0f1520, #0f1520) padding-box,
-      linear-gradient(135deg, rgba(255,166,87,0.35) 0%, rgba(255,166,87,0.05) 100%) border-box;
+      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(135deg, rgba(251,146,60,0.35) 0%, rgba(251,146,60,0.05) 100%) border-box;
   }
 
   /* Glow effects */
-  .glow-cyan  { box-shadow: 0 0 18px rgba(0,212,255,0.12); }
-  .glow-red   { box-shadow: 0 0 18px rgba(248,81,73,0.15); }
-  .glow-yellow{ box-shadow: 0 0 18px rgba(227,179,65,0.12); }
+  .glow-cyan  { box-shadow: 0 0 18px rgba(56,189,248,0.12); }
+  .glow-red   { box-shadow: 0 0 18px rgba(255,59,71,0.15); }
+  .glow-yellow{ box-shadow: 0 0 18px rgba(251,191,36,0.12); }
 
   /* Scanline overlay for hero accents */
   .scanlines::after {
@@ -78,26 +78,26 @@ html { background-color: #080c12; }
 
   /* Animated gradient background for featured cards */
   .gradient-cyber-cyan {
-    background: linear-gradient(135deg, rgba(0,212,255,0.12) 0%, rgba(0,119,168,0.06) 50%, transparent 100%);
+    background: linear-gradient(135deg, rgba(56,189,248,0.12) 0%, rgba(12,122,191,0.06) 50%, transparent 100%);
   }
   .gradient-cyber-red {
-    background: linear-gradient(135deg, rgba(248,81,73,0.12) 0%, rgba(180,40,35,0.06) 50%, transparent 100%);
+    background: linear-gradient(135deg, rgba(255,59,71,0.12) 0%, rgba(190,40,48,0.06) 50%, transparent 100%);
   }
   .gradient-cyber-yellow {
-    background: linear-gradient(135deg, rgba(227,179,65,0.12) 0%, rgba(160,120,30,0.06) 50%, transparent 100%);
+    background: linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(180,134,20,0.06) 50%, transparent 100%);
   }
   .gradient-cyber-purple {
-    background: linear-gradient(135deg, rgba(188,140,255,0.12) 0%, rgba(120,80,200,0.06) 50%, transparent 100%);
+    background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(109,69,201,0.06) 50%, transparent 100%);
   }
   .gradient-cyber-orange {
-    background: linear-gradient(135deg, rgba(255,166,87,0.12) 0%, rgba(200,110,40,0.06) 50%, transparent 100%);
+    background: linear-gradient(135deg, rgba(251,146,60,0.12) 0%, rgba(194,107,34,0.06) 50%, transparent 100%);
   }
 
   /* Grid background pattern */
   .grid-bg {
     background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 }

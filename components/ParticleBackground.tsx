@@ -12,7 +12,7 @@ interface Particle {
   r: number;
 }
 
-const ACCENT = "0, 212, 255"; // accent-cyan rgb
+const ACCENT = "56, 189, 248"; // brand blue #38BDF8
 const LINK_DIST = 110;
 const CURSOR_DIST = 160;
 const REPEL_RADIUS = 120;
