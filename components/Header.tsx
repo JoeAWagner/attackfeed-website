@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
-import Logo from "./Logo";
 
 export default function Header() {
   const pathname = usePathname();
@@ -29,9 +28,14 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <Logo size={28} className="group-hover:drop-shadow-[0_0_8px_rgba(0,212,255,0.5)] transition-all" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/attackfeed-icon-color-animated.svg"
+              alt=""
+              className="h-7 w-7 rounded-lg group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] transition-all"
+            />
             <span className="font-mono font-bold text-base text-text-primary group-hover:text-white transition-colors tracking-tight">
-              Attack<span className="text-accent-cyan">Feed</span>
+              attack<span className="text-accent-red">_</span><span className="text-accent-cyan">Feed</span>
             </span>
             <span className="hidden sm:flex items-center gap-1 text-[10px] text-accent-green font-mono border border-accent-green/20 bg-accent-green/10 rounded px-1.5 py-0.5">
               <span className="live-dot h-1.5 w-1.5 rounded-full bg-accent-green inline-block" />

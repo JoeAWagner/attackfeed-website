@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
-import Logo from "./Logo";
 
 export default function Footer() {
   return (
@@ -10,9 +9,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <Logo size={26} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/attackfeed-icon-color.svg" alt="" className="h-6 w-6 rounded-md" />
               <span className="font-mono font-bold text-text-primary">
-                Attack<span className="text-accent-cyan">Feed</span>
+                attack<span className="text-accent-red">_</span><span className="text-accent-cyan">Feed</span>
               </span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
