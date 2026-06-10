@@ -20,6 +20,15 @@ export default function Footer() {
             <p className="text-xs text-text-secondary leading-relaxed">
               A curated cybersecurity news aggregator. Stay ahead of threats with real-time feeds from top security sources.
             </p>
+            <a
+              href="https://wagnercybersecurity.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-accent-cyan transition-colors"
+            >
+              <span className="h-1 w-1 rounded-full bg-accent-cyan inline-block" />
+              Provided by Wagner Cybersecurity LLC
+            </a>
           </div>
 
           {/* Categories */}
@@ -93,7 +102,16 @@ export default function Footer() {
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-text-muted">
-            © {new Date().getFullYear()} AttackFeed. All articles link to their original sources.
+            © {new Date().getFullYear()} AttackFeed · A{" "}
+            <a
+              href="https://wagnercybersecurity.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-secondary hover:text-accent-cyan transition-colors"
+            >
+              Wagner Cybersecurity LLC
+            </a>{" "}
+            service. All articles link to their original sources.
           </p>
           <Link href="/search" className="text-xs text-text-secondary hover:text-accent-cyan transition-colors">
             Search the archive →

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     template: "%s | AttackFeed",
   },
   description:
-    "Real-time cybersecurity news aggregator. Attack reports, government alerts, vulnerability advisories, privacy news, and fraud warnings — all in one feed.",
+    "Real-time cybersecurity news aggregator by Wagner Cybersecurity LLC. Attack reports, government alerts, vulnerability advisories, privacy news, and fraud warnings — all in one feed.",
+  authors: [{ name: "Wagner Cybersecurity LLC", url: "https://wagnercybersecurity.com" }],
   keywords: ["cybersecurity", "security news", "vulnerability alerts", "CISA", "CVE", "threat intelligence"],
   openGraph: {
     title: "AttackFeed — Cybersecurity News Aggregator",
@@ -27,7 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-bg-primary text-text-primary antialiased">
+      {/* background color lives on <html> (globals.css) so the fixed
+          negative-z canvas isn't hidden behind an opaque body background */}
+      <body className="min-h-screen text-text-primary antialiased">
         <ParticleBackground />
         <Header />
         <main>{children}</main>
