@@ -11,6 +11,7 @@ export interface Article {
   published_at: string;
   description: string | null;
   image_url: string | null;
+  hidden: boolean;
   created_at: string;
 }
 
@@ -67,10 +68,15 @@ export async function setupDatabase(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_articles_fts
     ON articles USING GIN(to_tsvector('english', title || ' ' || COALESCE(description, '')))
   `;
+  // Soft-hide flag: hidden articles stay in the table (so the cron's
+  // ON CONFLICT(guid) blocks re-import) but never render
+  await sql`
+    ALTER TABLE articles ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE
+  `;
 }
 
 export async function upsertArticles(
-  articles: Omit<Article, "id" | "created_at">[]
+  articles: Omit<Article, "id" | "created_at" | "hidden">[]
 ): Promise<number> {
   // Dedupe by guid — a multi-row INSERT ... ON CONFLICT errors if the same
   // guid appears twice in one statement
@@ -142,22 +148,24 @@ export async function getArticles({
   if (category) {
     articles = (await sql`
       SELECT * FROM articles
-      WHERE category = ${category}
+      WHERE category = ${category} AND NOT hidden
       ORDER BY published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
     countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
-      WHERE category = ${category}
+      WHERE category = ${category} AND NOT hidden
     `) as unknown as { count: string }[];
   } else {
     articles = (await sql`
       SELECT * FROM articles
+      WHERE NOT hidden
       ORDER BY published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
     countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
+      WHERE NOT hidden
     `) as unknown as { count: string }[];
   }
 
@@ -195,6 +203,7 @@ export async function searchArticles({
       FROM articles
       WHERE category = ${category}
         AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
+        AND NOT hidden
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
@@ -202,18 +211,21 @@ export async function searchArticles({
       SELECT COUNT(*)::text as count FROM articles
       WHERE category = ${category}
         AND to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
+        AND NOT hidden
     `) as unknown as { count: string }[];
   } else {
     articles = (await sql`
       SELECT *, ts_rank(to_tsvector('english', title || ' ' || COALESCE(description, '')), websearch_to_tsquery('english', ${query})) AS rank
       FROM articles
       WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
+        AND NOT hidden
       ORDER BY rank DESC, published_at DESC
       LIMIT ${perPage} OFFSET ${offset}
     `) as unknown as Article[];
     countResult = (await sql`
       SELECT COUNT(*)::text as count FROM articles
       WHERE to_tsvector('english', title || ' ' || COALESCE(description, '')) @@ websearch_to_tsquery('english', ${query})
+        AND NOT hidden
     `) as unknown as { count: string }[];
   }
 
@@ -237,7 +249,7 @@ export async function getRecentArticlesByCategory(
       (cat) =>
         sql`
           SELECT * FROM articles
-          WHERE category = ${cat}
+          WHERE category = ${cat} AND NOT hidden
           ORDER BY published_at DESC
           LIMIT ${limit}
         ` as unknown as Promise<Article[]>
@@ -257,6 +269,7 @@ export async function getArticleCounts(): Promise<{ total: number; byCategory: R
   const rows = (await sql`
     SELECT category, COUNT(*)::int as count
     FROM articles
+    WHERE NOT hidden
     GROUP BY category
   `) as unknown as { category: string; count: number }[];
 
@@ -278,6 +291,7 @@ export async function getLatestArticles(limit = 20): Promise<Article[]> {
   const sql = getSql();
   const rows = await sql`
     SELECT * FROM articles
+    WHERE NOT hidden
     ORDER BY published_at DESC
     LIMIT ${limit}
   `;

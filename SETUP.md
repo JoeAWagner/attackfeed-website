@@ -110,6 +110,25 @@ curl -H "Authorization: Bearer your-cron-secret" \
 
 ---
 
+## Removing an article
+
+Use the moderation CLI (requires `DATABASE_URL` in `.env`):
+
+```bash
+# Find the article (title words or exact URL)
+npx tsx --env-file=.env scripts/moderate.ts "some title words"
+
+# Hide it by id (disappears from the site immediately)
+npx tsx --env-file=.env scripts/moderate.ts --hide 12345
+
+# See everything hidden / restore one
+npx tsx --env-file=.env scripts/moderate.ts --hidden
+npx tsx --env-file=.env scripts/moderate.ts --unhide 12345
+```
+
+Hidden articles stay in the database so the hourly cron can't re-import
+them — they just never render.
+
 ## Adding or removing feeds
 
 Edit [`lib/feeds.ts`](lib/feeds.ts) — add or remove entries from the `FEEDS` array.
