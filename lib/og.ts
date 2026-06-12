@@ -1,7 +1,42 @@
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
+/**
+ * SSRF guard: article URLs come from external RSS feeds. Reject anything
+ * that isn't plain http(s) to a public-looking hostname before fetching.
+ */
+function isFetchableUrl(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+
+  const host = parsed.hostname.toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost")) return false;
+  if (host.endsWith(".local") || host.endsWith(".internal")) return false;
+  if (host === "::1" || host.startsWith("[")) return false; // IPv6 literals
+
+  // IPv4 literals: block loopback, RFC1918, link-local, and 0.0.0.0/8
+  const v4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const [a, b] = [parseInt(v4[1], 10), parseInt(v4[2], 10)];
+    if (
+      a === 0 || a === 10 || a === 127 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 169 && b === 254)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function fetchOgImage(url: string, timeoutMs = 5000): Promise<string | null> {
+  if (!isFetchableUrl(url)) return null;
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);

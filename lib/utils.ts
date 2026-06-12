@@ -44,6 +44,24 @@ export function extractImageFromRss(item: Record<string, unknown>): string | nul
 }
 
 
+/**
+ * Returns the url only if it parses as http(s); null otherwise. Feed
+ * content is external input — this blocks javascript:/data: schemes from
+ * ever reaching an href or img src.
+ */
+export function safeHttpUrl(url: string | null | undefined, maxLen = 1000): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return url.slice(0, maxLen);
+    }
+  } catch {
+    // not a parseable absolute URL
+  }
+  return null;
+}
+
 export function detectSeverity(title: string): "critical" | "high" | null {
   const t = title.toLowerCase();
   if (/critical|zero.?day|0.?day|actively exploit|emergency|ransomware attack|data breach/.test(t))

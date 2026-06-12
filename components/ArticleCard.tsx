@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Article } from "@/lib/db";
 import { getCategoryBySlug, Category } from "@/lib/categories";
-import { timeAgo, stripHtml, truncate, detectSeverity } from "@/lib/utils";
+import { timeAgo, stripHtml, truncate, detectSeverity, safeHttpUrl } from "@/lib/utils";
 
 interface Props {
   article: Article;
@@ -91,10 +91,13 @@ export default function ArticleCard({ article, featured = false }: Props) {
   const description = article.description
     ? truncate(stripHtml(article.description), 130)
     : null;
+  // Defense in depth: rows predating ingest validation could hold odd schemes
+  const href = safeHttpUrl(article.url) ?? "#";
+  const imageUrl = safeHttpUrl(article.image_url);
 
   return (
     <a
-      href={article.url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={`group flex gap-3 p-3.5 rounded-xl transition-all duration-200 ${cardBorder} ${glow}`}
@@ -106,9 +109,9 @@ export default function ArticleCard({ article, featured = false }: Props) {
       />
 
       {/* Thumbnail — real image or source monogram tile */}
-      {article.image_url ? (
+      {imageUrl ? (
         <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-bg-primary">
-          <Image src={article.image_url} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+          <Image src={imageUrl} alt="" fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
         </div>
       ) : (
         <MonogramTile source={article.source} color={category?.accentColor} />
@@ -155,20 +158,22 @@ function FeaturedCard({
   const description = article.description
     ? truncate(stripHtml(article.description), 220)
     : null;
+  const href = safeHttpUrl(article.url) ?? "#";
+  const imageUrl = safeHttpUrl(article.image_url);
 
   return (
     <a
-      href={article.url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="group flex flex-col rounded-xl overflow-hidden border border-white/[0.07] bg-bg-card hover:border-white/[0.14] transition-all duration-200"
       style={{ boxShadow: `0 0 0 1px transparent, inset 0 0 40px rgba(0,0,0,0.2)` }}
     >
       {/* Header area — works without image */}
-      <div className={`relative overflow-hidden ${article.image_url ? "" : "min-h-[120px]"}`}>
-        {article.image_url ? (
+      <div className={`relative overflow-hidden ${imageUrl ? "" : "min-h-[120px]"}`}>
+        {imageUrl ? (
           <div className="relative h-44 w-full overflow-hidden">
-            <Image src={article.image_url} alt="" fill className="object-cover opacity-60 group-hover:opacity-75 transition-opacity" unoptimized />
+            <Image src={imageUrl} alt="" fill className="object-cover opacity-60 group-hover:opacity-75 transition-opacity" unoptimized />
             <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-bg-card/60 to-transparent" />
           </div>
         ) : (

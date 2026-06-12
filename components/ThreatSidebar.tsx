@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Article } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, safeHttpUrl } from "@/lib/utils";
 import AdUnit from "./AdUnit";
 
 interface Props {
@@ -81,7 +81,7 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
               {articles.slice(0, 4).map((article) => (
                 <a
                   key={article.id}
-                  href={article.url}
+                  href={safeHttpUrl(article.url) ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col gap-1 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"

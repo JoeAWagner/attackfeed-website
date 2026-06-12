@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import Parser from "rss-parser";
 import { upsertArticles, pruneOldArticles, setupDatabase, getExistingGuids } from "@/lib/db";
 import { FEEDS } from "@/lib/feeds";
-import { extractImageFromRss, stripHtml, truncate } from "@/lib/utils";
+import { extractImageFromRss, stripHtml, truncate, safeHttpUrl } from "@/lib/utils";
 import { fetchOgImages } from "@/lib/og";
 
 // Feed parsing + og:image fetches need more than the default timeout
@@ -34,12 +35,16 @@ const parser = new Parser({
   },
 });
 
+function authorized(authHeader: string | null, secret: string | undefined): boolean {
+  if (!secret || !authHeader) return false;
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const provided = Buffer.from(authHeader);
+  return expected.length === provided.length && timingSafeEqual(expected, provided);
+}
+
 export async function GET(req: NextRequest) {
   // Verify cron secret — fail closed if it isn't configured
-  const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!authorized(req.headers.get("authorization"), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -60,16 +65,17 @@ export async function GET(req: NextRequest) {
         const articles = (parsed.items as unknown as RssItem[]).map((item) => {
           const guid = item.guid ?? item.link ?? `${feed.source}-${item.title}`;
           const title = item.title?.trim() ?? "(untitled)";
-          const url = item.link ?? "";
+          // Feed content is external input: only http(s) URLs survive
+          const url = safeHttpUrl(item.link) ?? "";
           const publishedAt = item.isoDate ?? item.pubDate ?? new Date().toISOString();
           const rawDescription = item.contentSnippet ?? item.content ?? item["content:encoded"] ?? "";
           const description = truncate(stripHtml(rawDescription), 500) || null;
-          const imageUrl = extractImageFromRss(item as Record<string, unknown>);
+          const imageUrl = safeHttpUrl(extractImageFromRss(item as Record<string, unknown>));
 
           return {
             guid: guid.slice(0, 500),
             title: title.slice(0, 500),
-            url: url.slice(0, 1000),
+            url,
             source: feed.source,
             category: feed.category,
             published_at: publishedAt,
