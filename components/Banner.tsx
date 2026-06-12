@@ -45,6 +45,9 @@ export default function Banner() {
           <span className="text-xs font-medium text-text-secondary group-hover:text-accent-cyan transition-colors">
             Wagner Cybersecurity LLC
           </span>
+          <span className="text-[10px] text-text-muted">
+            20+ years in cybersecurity
+          </span>
         </a>
       </div>
     </div>

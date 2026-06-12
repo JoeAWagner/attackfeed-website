@@ -25,7 +25,7 @@ export default function Footer() {
               className="mt-4 inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-accent-cyan transition-colors"
             >
               <span className="h-1 w-1 rounded-full bg-accent-cyan inline-block" />
-              Provided by Wagner Cybersecurity LLC
+              Provided by Wagner Cybersecurity LLC · 20+ years in cybersecurity
             </a>
           </div>
 
