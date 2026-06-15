@@ -38,7 +38,7 @@ export const FEEDS: FeedSource[] = [
   { url: "https://www.eff.org/rss/updates.xml", source: "EFF Deeplinks", category: "privacy" },
   { url: "https://www.proofpoint.com/us/rss.xml", source: "Proofpoint", category: "privacy" },
   { url: "https://www.privacyaffairs.com/feed/", source: "Privacy Affairs", category: "privacy" },
-  { url: "https://nakedsecurity.sophos.com/feed/", source: "Sophos Naked Security", category: "privacy" },
+  { url: "https://www.schneier.com/feed/atom/", source: "Schneier on Security", category: "privacy" },
 
   // Fraud & Scams
   { url: "https://www.ic3.gov/PSA/RSS", source: "FBI IC3", category: "fraud" },
