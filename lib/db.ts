@@ -78,17 +78,31 @@ export async function setupDatabase(): Promise<void> {
 export async function upsertArticles(
   articles: Omit<Article, "id" | "created_at" | "hidden">[]
 ): Promise<number> {
-  // Dedupe by guid — a multi-row INSERT ... ON CONFLICT errors if the same
-  // guid appears twice in one statement
-  const seen = new Set<string>();
-  const unique = articles.filter((a) => {
-    if (seen.has(a.guid)) return false;
-    seen.add(a.guid);
+  // Dedupe within the batch by guid (a multi-row INSERT ... ON CONFLICT
+  // errors if the same guid appears twice) and by url (the same article
+  // can show up in two feeds with different guids — e.g. a publisher's
+  // main feed and a category feed).
+  const seenGuids = new Set<string>();
+  const seenUrls = new Set<string>();
+  const batch = articles.filter((a) => {
+    if (seenGuids.has(a.guid) || seenUrls.has(a.url)) return false;
+    seenGuids.add(a.guid);
+    seenUrls.add(a.url);
     return true;
   });
-  if (unique.length === 0) return 0;
+  if (batch.length === 0) return 0;
 
   const sql = getSql();
+
+  // Drop articles that would create a duplicate of an existing row under a
+  // different guid: a *new* guid whose url is already in the table. Known
+  // guids are kept so ON CONFLICT(guid) can still backfill a missing image.
+  const existingGuids = await getExistingGuids(batch.map((a) => a.guid));
+  const existingUrls = await getExistingUrls(batch.map((a) => a.url));
+  const unique = batch.filter(
+    (a) => existingGuids.has(a.guid) || !existingUrls.has(a.url)
+  );
+  if (unique.length === 0) return 0;
   const result = (await sql`
     INSERT INTO articles (guid, title, url, source, category, published_at, description, image_url)
     SELECT * FROM unnest(
@@ -117,6 +131,15 @@ export async function getExistingGuids(guids: string[]): Promise<Set<string>> {
     SELECT guid FROM articles WHERE guid = ANY(${guids})
   `) as unknown as { guid: string }[];
   return new Set(rows.map((r) => r.guid));
+}
+
+export async function getExistingUrls(urls: string[]): Promise<Set<string>> {
+  if (urls.length === 0) return new Set();
+  const sql = getSql();
+  const rows = (await sql`
+    SELECT url FROM articles WHERE url = ANY(${urls})
+  `) as unknown as { url: string }[];
+  return new Set(rows.map((r) => r.url));
 }
 
 export async function pruneOldArticles(): Promise<number> {

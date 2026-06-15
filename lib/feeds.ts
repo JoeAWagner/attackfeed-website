@@ -41,6 +41,7 @@ export const FEEDS: FeedSource[] = [
   { url: "https://nakedsecurity.sophos.com/feed/", source: "Sophos Naked Security", category: "privacy" },
 
   // Fraud & Scams
+  { url: "https://www.ic3.gov/PSA/RSS", source: "FBI IC3", category: "fraud" },
   { url: "https://www.ftc.gov/feeds/press-release-consumer-protection.xml", source: "FTC Consumer Protection", category: "fraud" },
   { url: "https://krebsonsecurity.com/category/web-fraud-2-0/feed/", source: "Krebs on Security", category: "fraud" },
   { url: "https://blog.knowbe4.com/rss.xml", source: "KnowBe4", category: "fraud" },
