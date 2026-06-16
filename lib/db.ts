@@ -12,6 +12,9 @@ export interface Article {
   description: string | null;
   image_url: string | null;
   hidden: boolean;
+  cve_id: string | null;
+  cve_score: number | null;
+  cve_severity: string | null;
   created_at: string;
 }
 
@@ -73,6 +76,69 @@ export async function setupDatabase(): Promise<void> {
   await sql`
     ALTER TABLE articles ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE
   `;
+  // CVE tagging: the CVE id mentioned in an article + its CVSS score/severity
+  await sql`ALTER TABLE articles ADD COLUMN IF NOT EXISTS cve_id TEXT`;
+  await sql`ALTER TABLE articles ADD COLUMN IF NOT EXISTS cve_score REAL`;
+  await sql`ALTER TABLE articles ADD COLUMN IF NOT EXISTS cve_severity TEXT`;
+  // Per-CVE score cache so each CVE is fetched from NVD at most once.
+  // score/severity are nullable: a row with null score records that we
+  // looked and NVD had no score yet (re-checked after the TTL).
+  await sql`
+    CREATE TABLE IF NOT EXISTS cve_scores (
+      cve_id TEXT PRIMARY KEY,
+      score REAL,
+      severity TEXT,
+      fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+}
+
+export interface CveScoreRow {
+  cve_id: string;
+  score: number | null;
+  severity: string | null;
+}
+
+/** Cached CVE scores for the given ids. Skips rows whose null score is
+ * stale (older than 7 days) so the caller re-fetches those from NVD. */
+export async function getCachedCveScores(cveIds: string[]): Promise<Map<string, CveScoreRow>> {
+  if (cveIds.length === 0) return new Map();
+  const sql = getSql();
+  const rows = (await sql`
+    SELECT cve_id, score, severity FROM cve_scores
+    WHERE cve_id = ANY(${cveIds})
+      AND (score IS NOT NULL OR fetched_at > NOW() - INTERVAL '7 days')
+  `) as unknown as CveScoreRow[];
+  return new Map(rows.map((r) => [r.cve_id, r]));
+}
+
+export async function cacheCveScore(
+  cveId: string,
+  score: number | null,
+  severity: string | null
+): Promise<void> {
+  const sql = getSql();
+  await sql`
+    INSERT INTO cve_scores (cve_id, score, severity, fetched_at)
+    VALUES (${cveId}, ${score}, ${severity}, NOW())
+    ON CONFLICT (cve_id) DO UPDATE
+      SET score = EXCLUDED.score, severity = EXCLUDED.severity, fetched_at = NOW()
+  `;
+}
+
+/** Backfill articles whose CVE score arrived in the cache after import. */
+export async function reconcileCveScores(): Promise<number> {
+  const sql = getSql();
+  const rows = (await sql`
+    UPDATE articles a
+    SET cve_score = c.score, cve_severity = c.severity
+    FROM cve_scores c
+    WHERE a.cve_id = c.cve_id
+      AND c.score IS NOT NULL
+      AND a.cve_score IS DISTINCT FROM c.score
+    RETURNING a.id
+  `) as unknown as { id: number }[];
+  return rows.length;
 }
 
 export async function upsertArticles(
@@ -104,7 +170,7 @@ export async function upsertArticles(
   );
   if (unique.length === 0) return 0;
   const result = (await sql`
-    INSERT INTO articles (guid, title, url, source, category, published_at, description, image_url)
+    INSERT INTO articles (guid, title, url, source, category, published_at, description, image_url, cve_id, cve_score, cve_severity)
     SELECT * FROM unnest(
       ${unique.map((a) => a.guid)}::text[],
       ${unique.map((a) => a.title)}::text[],
@@ -113,7 +179,10 @@ export async function upsertArticles(
       ${unique.map((a) => a.category)}::text[],
       ${unique.map((a) => a.published_at)}::timestamptz[],
       ${unique.map((a) => a.description)}::text[],
-      ${unique.map((a) => a.image_url)}::text[]
+      ${unique.map((a) => a.image_url)}::text[],
+      ${unique.map((a) => a.cve_id)}::text[],
+      ${unique.map((a) => a.cve_score)}::real[],
+      ${unique.map((a) => a.cve_severity)}::text[]
     )
     ON CONFLICT (guid) DO UPDATE
       SET image_url = EXCLUDED.image_url

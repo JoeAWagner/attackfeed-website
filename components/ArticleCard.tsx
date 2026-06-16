@@ -67,6 +67,39 @@ function MonogramTile({ source, color }: { source: string; color?: string }) {
   );
 }
 
+// CVSS severity -> color, matching the brand palette
+const CVE_SEVERITY_COLOR: Record<string, string> = {
+  CRITICAL: "#FF3B47",
+  HIGH: "#FB923C",
+  MEDIUM: "#FBBF24",
+  LOW: "#38BDF8",
+};
+
+function CveBadge({ article }: { article: Article }) {
+  if (!article.cve_id) return null;
+  const color = article.cve_severity
+    ? CVE_SEVERITY_COLOR[article.cve_severity] ?? "#7A8694"
+    : "#7A8694";
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded border"
+      style={{ color, borderColor: `${color}40`, backgroundColor: `${color}14` }}
+      title={
+        article.cve_score != null
+          ? `${article.cve_id} — CVSS ${article.cve_score} ${article.cve_severity}`
+          : article.cve_id
+      }
+    >
+      <span className="tracking-wider">{article.cve_id}</span>
+      {article.cve_score != null && (
+        <span className="opacity-90">
+          {article.cve_score.toFixed(1)} {article.cve_severity}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function SeverityBadge({ title }: { title: string }) {
   const sev = detectSeverity(title);
   if (!sev) return null;
@@ -127,6 +160,7 @@ export default function ArticleCard({ article, featured = false }: Props) {
             {CATEGORY_ABBR[article.category] ?? article.category}
           </span>
           <SeverityBadge title={article.title} />
+          <CveBadge article={article} />
           <span className="text-xs font-medium text-text-secondary">{article.source}</span>
           <span className="text-text-muted text-[11px] ml-auto shrink-0">{ago}</span>
         </div>
@@ -207,6 +241,7 @@ function FeaturedCard({
             {category?.name ?? article.category}
           </span>
           <SeverityBadge title={article.title} />
+          <CveBadge article={article} />
           <span className="text-xs font-medium text-text-secondary">{article.source}</span>
         </div>
 
