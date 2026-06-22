@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Theme = "system" | "light" | "dark";
 
@@ -25,10 +26,13 @@ export default function Settings() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>("dark");
   const [font, setFont] = useState(100);
+  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   // Hydrate from storage (the inline head script already applied them pre-paint)
   useEffect(() => {
+    setMounted(true);
     const t = (localStorage.getItem("af-theme") as Theme) || "dark";
     const f = parseInt(localStorage.getItem("af-font") || "100", 10);
     setTheme(t);
@@ -48,7 +52,10 @@ export default function Settings() {
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      // popover lives in a portal, so check it separately from the trigger
+      if (ref.current?.contains(t) || popoverRef.current?.contains(t)) return;
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -113,11 +120,17 @@ export default function Settings() {
         </svg>
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
+        // Rendered in a portal on <body> so the header's backdrop-filter
+        // can't capture the fixed positioning. Pinned to the viewport and
+        // counter-scaled from the top-right corner so it stays put and at a
+        // constant size while the slider changes the page font.
+        <div ref={popoverRef} className="fixed top-[56px] right-[12px] z-50">
         <div
           role="dialog"
           aria-label="Display settings"
-          className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-bg-card shadow-xl p-4 space-y-4 z-50"
+          className="w-64 rounded-xl border border-border bg-bg-card shadow-xl p-4 space-y-4"
+          style={{ transform: `scale(${100 / font})`, transformOrigin: "top right" }}
         >
           {/* Theme */}
           <div>
@@ -191,6 +204,8 @@ export default function Settings() {
             )}
           </div>
         </div>
+        </div>,
+        document.body
       )}
     </div>
   );
