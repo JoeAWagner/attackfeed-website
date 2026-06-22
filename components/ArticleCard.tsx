@@ -165,12 +165,12 @@ export default function ArticleCard({ article, featured = false }: Props) {
           <span className="text-text-muted text-[11px] ml-auto shrink-0">{ago}</span>
         </div>
 
-        <h3 className="text-sm font-semibold text-text-primary group-hover:text-white transition-colors leading-snug line-clamp-2">
+        <h3 className="text-sm font-semibold text-text-primary group-hover:text-text-primary transition-colors leading-snug line-clamp-2">
           {article.title}
         </h3>
 
         {description && (
-          <p className="text-[12px] text-text-secondary leading-relaxed line-clamp-1 hidden sm:block">
+          <p className="text-xs text-text-secondary leading-relaxed line-clamp-1 hidden sm:block">
             {description}
           </p>
         )}
@@ -200,7 +200,7 @@ function FeaturedCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col rounded-xl overflow-hidden border border-white/[0.07] bg-bg-card hover:border-white/[0.14] transition-all duration-200"
+      className="group flex flex-col rounded-xl overflow-hidden border border-hairline/[0.07] bg-bg-card hover:border-hairline/[0.14] transition-all duration-200"
       style={{ boxShadow: `0 0 0 1px transparent, inset 0 0 40px rgba(0,0,0,0.2)` }}
     >
       {/* Header area — works without image */}
@@ -245,7 +245,7 @@ function FeaturedCard({
           <span className="text-xs font-medium text-text-secondary">{article.source}</span>
         </div>
 
-        <h2 className="font-bold text-text-primary group-hover:text-white transition-colors leading-snug text-base">
+        <h2 className="font-bold text-text-primary group-hover:text-text-primary transition-colors leading-snug text-base">
           {article.title}
         </h2>
 
@@ -253,9 +253,9 @@ function FeaturedCard({
           <p className="text-sm text-text-secondary leading-relaxed line-clamp-3">{description}</p>
         )}
 
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/[0.05]">
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-hairline/[0.05]">
           <span className="text-[11px] text-text-muted font-mono">{ago}</span>
-          <span className="text-xs text-text-secondary group-hover:text-white transition-colors flex items-center gap-1">
+          <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors flex items-center gap-1">
             Read more
             <svg className="h-3 w-3 -rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />

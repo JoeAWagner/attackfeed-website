@@ -4,54 +4,93 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --scrollbar-bg: #0B0E13;
-  --scrollbar-thumb: #2A3340;
-  --scrollbar-thumb-hover: #3A4754;
+/* Theme tokens as space-separated RGB channels so Tailwind can apply
+   opacity modifiers (e.g. bg-bg-card/60). Dark is the default; .light
+   overrides. Accents shift to darker shades in light mode for contrast. */
+:root, .dark {
+  --bg-primary: 11 14 19;
+  --bg-secondary: 14 18 25;
+  --bg-card: 18 23 31;
+  --bg-hover: 26 34 48;
+  --panel: 18 23 31;
+  --text-primary: 232 237 242;
+  --text-secondary: 122 134 148;
+  --text-muted: 74 85 104;
+  --border: 42 51 64;
+  --border-bright: 58 71 84;
+  --hairline: 255 255 255;
+  --accent-cyan: 56 189 248;
+  --accent-red: 255 59 71;
+  --accent-yellow: 251 191 36;
+  --accent-orange: 251 146 60;
+  --accent-purple: 139 92 246;
+  --accent-green: 52 211 153;
+  color-scheme: dark;
+}
+
+.light {
+  --bg-primary: 246 248 250;
+  --bg-secondary: 255 255 255;
+  --bg-card: 255 255 255;
+  --bg-hover: 237 241 245;
+  --panel: 255 255 255;
+  --text-primary: 17 24 39;
+  --text-secondary: 75 85 99;
+  --text-muted: 130 140 156;
+  --border: 209 213 219;
+  --border-bright: 156 163 175;
+  --hairline: 17 24 39;
+  --accent-cyan: 2 132 199;
+  --accent-red: 220 38 38;
+  --accent-yellow: 180 83 9;
+  --accent-orange: 194 65 12;
+  --accent-purple: 124 58 237;
+  --accent-green: 5 150 105;
+  color-scheme: light;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+  scrollbar-color: rgb(var(--border)) rgb(var(--bg-primary));
 }
 *::-webkit-scrollbar { width: 5px; height: 5px; }
-*::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
-*::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
-*::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+*::-webkit-scrollbar-track { background: rgb(var(--bg-primary)); }
+*::-webkit-scrollbar-thumb { background: rgb(var(--border)); border-radius: 3px; }
+*::-webkit-scrollbar-thumb:hover { background: rgb(var(--border-bright)); }
 
-html { background-color: #0B0E13; }
-::selection { background: rgba(56,189,248,0.2); color: #E8EDF2; }
+html { background-color: rgb(var(--bg-primary)); font-size: var(--font-scale, 100%); }
+::selection { background: rgb(var(--accent-cyan) / 0.2); color: rgb(var(--text-primary)); }
 
 @layer utilities {
   /* Gradient border cards */
   .card-border-cyan {
     border: 1px solid transparent;
     background:
-      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(rgb(var(--panel)), rgb(var(--panel))) padding-box,
       linear-gradient(135deg, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.05) 100%) border-box;
   }
   .card-border-yellow {
     border: 1px solid transparent;
     background:
-      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(rgb(var(--panel)), rgb(var(--panel))) padding-box,
       linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(251,191,36,0.05) 100%) border-box;
   }
   .card-border-red {
     border: 1px solid transparent;
     background:
-      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(rgb(var(--panel)), rgb(var(--panel))) padding-box,
       linear-gradient(135deg, rgba(255,59,71,0.35) 0%, rgba(255,59,71,0.05) 100%) border-box;
   }
   .card-border-purple {
     border: 1px solid transparent;
     background:
-      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(rgb(var(--panel)), rgb(var(--panel))) padding-box,
       linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(139,92,246,0.05) 100%) border-box;
   }
   .card-border-orange {
     border: 1px solid transparent;
     background:
-      linear-gradient(#12171F, #12171F) padding-box,
+      linear-gradient(rgb(var(--panel)), rgb(var(--panel))) padding-box,
       linear-gradient(135deg, rgba(251,146,60,0.35) 0%, rgba(251,146,60,0.05) 100%) border-box;
   }
 

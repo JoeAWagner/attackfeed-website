@@ -2,7 +2,12 @@
 
 export default function Banner() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/[0.08]">
+    // Hero stays dark in both themes so the brand lockup (light wordmark)
+    // always reads. Text colors below are fixed, not theme tokens.
+    <div
+      className="relative overflow-hidden rounded-2xl border border-white/[0.08]"
+      style={{ backgroundColor: "#0B0E13" }}
+    >
       {/* Layered backdrop: gradient + grid + scanlines */}
       <div className="absolute inset-0 gradient-cyber-cyan" />
       <div className="absolute inset-0 grid-bg opacity-60" />
@@ -28,7 +33,7 @@ export default function Banner() {
             alt="attack_Feed"
             className="h-6 sm:h-8 w-auto"
           />
-          <p className="mt-1.5 text-xs sm:text-sm text-text-secondary truncate">
+          <p className="mt-1.5 text-xs sm:text-sm text-[#7A8694] truncate">
             Cybersecurity news from across the internet
           </p>
         </div>
@@ -39,13 +44,13 @@ export default function Banner() {
           rel="noopener noreferrer"
           className="ml-auto hidden md:flex flex-col items-end gap-0.5 group shrink-0"
         >
-          <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted group-hover:text-text-secondary transition-colors">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#4A5568] group-hover:text-[#7A8694] transition-colors">
             Provided by
           </span>
-          <span className="text-xs font-medium text-text-secondary group-hover:text-accent-cyan transition-colors">
+          <span className="text-xs font-medium text-[#7A8694] group-hover:text-accent-cyan transition-colors">
             Wagner Cybersecurity LLC
           </span>
-          <span className="text-[10px] text-text-muted">
+          <span className="text-[10px] text-[#4A5568]">
             20+ years in cybersecurity
           </span>
         </a>

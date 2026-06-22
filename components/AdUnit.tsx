@@ -34,8 +34,8 @@ export default function AdUnit({ slot, className = "" }: Props) {
   if (!client || !slot) return null;
 
   return (
-    <div className={`rounded-xl border border-white/[0.07] bg-bg-card overflow-hidden ${className}`}>
-      <div className="px-4 py-1.5 border-b border-white/[0.05]">
+    <div className={`rounded-xl border border-hairline/[0.07] bg-bg-card overflow-hidden ${className}`}>
+      <div className="px-4 py-1.5 border-b border-hairline/[0.05]">
         <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted">
           Sponsored
         </span>

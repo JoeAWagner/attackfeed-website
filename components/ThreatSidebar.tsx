@@ -15,7 +15,7 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
   return (
     <div className="space-y-5">
       {/* Threat meter */}
-      <div className="rounded-xl border border-white/[0.07] bg-bg-card p-4 space-y-3">
+      <div className="rounded-xl border border-hairline/[0.07] bg-bg-card p-4 space-y-3">
         <div className="flex items-center gap-2">
           <span className="live-dot h-1.5 w-1.5 rounded-full bg-accent-red inline-block" />
           <h3 className="text-[11px] font-mono font-semibold text-text-muted uppercase tracking-widest">
@@ -37,7 +37,7 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
                     {count.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-1 w-full rounded-full bg-hairline/[0.06] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${pct}%`, backgroundColor: cat.accentColor, opacity: 0.7 }}
@@ -59,10 +59,10 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
         if (!cat || articles.length === 0) return null;
 
         return (
-          <div key={slug} className="rounded-xl border border-white/[0.07] bg-bg-card overflow-hidden">
+          <div key={slug} className="rounded-xl border border-hairline/[0.07] bg-bg-card overflow-hidden">
             {/* Section header */}
             <div
-              className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.05]"
+              className="flex items-center justify-between px-4 py-2.5 border-b border-hairline/[0.05]"
               style={{ background: `linear-gradient(90deg, ${cat.accentColor}12, transparent)` }}
             >
               <div className="flex items-center gap-2">
@@ -77,16 +77,16 @@ export default function ThreatSidebar({ byCategory, counts }: Props) {
             </div>
 
             {/* Article list */}
-            <div className="divide-y divide-white/[0.04]">
+            <div className="divide-y divide-hairline/[0.04]">
               {articles.slice(0, 4).map((article) => (
                 <a
                   key={article.id}
                   href={safeHttpUrl(article.url) ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col gap-1 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
+                  className="group flex flex-col gap-1 px-4 py-2.5 hover:bg-hairline/[0.03] transition-colors"
                 >
-                  <p className="text-[12px] font-medium text-text-primary group-hover:text-white transition-colors leading-snug line-clamp-2">
+                  <p className="text-xs font-medium text-text-primary group-hover:text-text-primary transition-colors leading-snug line-clamp-2">
                     {article.title}
                   </p>
                   <div className="flex items-center gap-2">

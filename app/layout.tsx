@@ -35,10 +35,23 @@ export default function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
+  // Applied before paint to avoid a theme/size flash on load
+  const noFlash = `(function(){try{
+    var t=localStorage.getItem('af-theme')||'dark';
+    var dark=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
+    var r=document.documentElement;
+    r.classList.toggle('dark',dark);r.classList.toggle('light',!dark);
+    var f=parseInt(localStorage.getItem('af-font')||'100',10);
+    if(f){r.style.setProperty('--font-scale',f+'%');}
+  }catch(e){}})();`;
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       {/* background color lives on <html> (globals.css) so the fixed
           negative-z canvas isn't hidden behind an opaque body background */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: noFlash }} />
+      </head>
       <body className="min-h-screen text-text-primary antialiased">
         <ParticleBackground />
         <Header />

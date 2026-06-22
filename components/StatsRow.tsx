@@ -10,7 +10,7 @@ interface Props {
 
 export default function StatsRow({ total, byCategory, lastUpdated }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 px-4 rounded-xl border border-white/[0.06] bg-bg-card/60">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 px-4 rounded-xl border border-hairline/[0.06] bg-bg-card/60">
       {/* Live indicator */}
       <div className="flex items-center gap-2">
         <span className="live-dot h-2 w-2 rounded-full bg-accent-green inline-block" />
@@ -18,7 +18,7 @@ export default function StatsRow({ total, byCategory, lastUpdated }: Props) {
       </div>
 
       {/* Divider */}
-      <div className="h-4 w-px bg-white/10 hidden sm:block" />
+      <div className="h-4 w-px bg-hairline/10 hidden sm:block" />
 
       {/* Total count */}
       <div className="flex items-center gap-1.5">
@@ -29,7 +29,7 @@ export default function StatsRow({ total, byCategory, lastUpdated }: Props) {
       {/* Last updated */}
       {lastUpdated && (
         <>
-          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+          <div className="h-4 w-px bg-hairline/10 hidden sm:block" />
           <span className="text-xs text-text-muted font-mono">
             updated {timeAgo(lastUpdated)}
           </span>
@@ -44,7 +44,7 @@ export default function StatsRow({ total, byCategory, lastUpdated }: Props) {
             <Link
               key={cat.slug}
               href={`/category/${cat.slug}`}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-colors hover:bg-white/[0.06]"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-colors hover:bg-hairline/[0.06]"
             >
               <span
                 className="h-1.5 w-1.5 rounded-full shrink-0"
