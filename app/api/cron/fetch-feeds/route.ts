@@ -17,6 +17,16 @@ import { extractCve, fetchCvss, NVD_HAS_KEY } from "@/lib/cve";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Coerce an RSS field to a string. Handles the { _: "text", $: {...} }
+ * shape rss-parser produces for tags that carry XML attributes. */
+function asText(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object" && typeof (v as { _?: unknown })._ === "string") {
+    return (v as { _: string })._;
+  }
+  return "";
+}
+
 // Feed parsing + og:image fetches need more than the default timeout
 export const maxDuration = 120;
 
@@ -78,12 +88,15 @@ export async function GET(req: NextRequest) {
       try {
         const parsed = await parser.parseURL(feed.url);
         const articles = (parsed.items as unknown as RssItem[]).map((item) => {
-          const guid = item.guid ?? item.link ?? `${feed.source}-${item.title}`;
-          const title = item.title?.trim() ?? "(untitled)";
+          // Some feeds return objects (e.g. <guid isPermaLink="false">…</guid>
+          // parses to { _: "…", $: {…} }) instead of strings — coerce them.
+          const guid = asText(item.guid) || asText(item.link) || `${feed.source}-${asText(item.title)}`;
+          const title = asText(item.title).trim() || "(untitled)";
           // Feed content is external input: only http(s) URLs survive
-          const url = safeHttpUrl(item.link) ?? "";
+          const url = safeHttpUrl(asText(item.link)) ?? "";
           const publishedAt = item.isoDate ?? item.pubDate ?? new Date().toISOString();
-          const rawDescription = item.contentSnippet ?? item.content ?? item["content:encoded"] ?? "";
+          const rawDescription =
+            asText(item.contentSnippet) || asText(item.content) || asText(item["content:encoded"]);
           const description = truncate(stripHtml(rawDescription), 500) || null;
           const imageUrl = safeHttpUrl(extractImageFromRss(item as Record<string, unknown>));
           const cveId = extractCve(`${title} ${description ?? ""}`);
