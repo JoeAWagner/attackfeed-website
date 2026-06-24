@@ -21,8 +21,8 @@ async function DashboardContent() {
     getArticleCounts(),
   ]);
 
-  const featuredArticles = latest.slice(0, 3);
-  const feedArticles = latest.slice(3);
+  const featuredArticles = latest.slice(0, 9);
+  const feedArticles = latest.slice(9);
 
   if (latest.length === 0) {
     return (
@@ -59,7 +59,7 @@ async function DashboardContent() {
             Latest
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {featuredArticles.map((article) => (
             <ArticleCard key={article.id} article={article} featured />
           ))}

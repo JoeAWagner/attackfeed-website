@@ -207,8 +207,8 @@ function FeaturedCard({
       <div className={`relative overflow-hidden ${imageUrl ? "" : "min-h-[120px]"}`}>
         {imageUrl ? (
           <div className="relative h-44 w-full overflow-hidden">
-            <Image src={imageUrl} alt="" fill className="object-cover opacity-60 group-hover:opacity-75 transition-opacity" unoptimized />
-            <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-bg-card/60 to-transparent" />
+            <Image src={imageUrl} alt="" fill className="object-cover opacity-85 group-hover:opacity-100 transition-opacity" unoptimized />
+            <div className="absolute inset-0 bg-gradient-to-t from-bg-card/80 via-bg-card/20 to-transparent" />
           </div>
         ) : (
           <div className={`relative scanlines ${gradient} px-5 pt-5 pb-3`}>
