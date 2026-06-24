@@ -35,7 +35,9 @@ export const FEEDS: FeedSource[] = [
   { url: "https://labs.watchtowr.com/rss/", source: "watchTowr Labs", category: "vulnerabilities" },
   { url: "https://googleprojectzero.blogspot.com/feeds/posts/default", source: "Google Project Zero", category: "vulnerabilities" },
   { url: "https://unit42.paloaltonetworks.com/feed/", source: "Palo Alto Unit 42", category: "vulnerabilities" },
-  { url: "https://www.mandiant.com/resources/blog/rss.xml", source: "Mandiant", category: "vulnerabilities" },
+  { url: "https://www.recordedfuture.com/feed", source: "Recorded Future", category: "vulnerabilities" },
+  { url: "https://www.sentinelone.com/labs/feed/", source: "SentinelOne Labs", category: "vulnerabilities" },
+  { url: "https://www.microsoft.com/en-us/security/blog/feed/", source: "Microsoft Security", category: "vulnerabilities" },
 
   // Privacy & Governance
   { url: "https://www.eff.org/rss/updates.xml", source: "EFF Deeplinks", category: "privacy" },
