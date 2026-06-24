@@ -23,6 +23,9 @@ export const FEEDS: FeedSource[] = [
   { url: "https://www.cisa.gov/news.xml", source: "CISA News", category: "gov-alerts" },
   { url: "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml", source: "UK NCSC", category: "gov-alerts" },
   { url: "https://www.cisecurity.org/feed/advisories", source: "CIS Advisories", category: "gov-alerts" },
+  { url: "https://isc.sans.edu/rssfeed_full.xml", source: "SANS Internet Storm Center", category: "gov-alerts" },
+  { url: "https://www.kb.cert.org/vuls/atomfeed/", source: "CERT/CC", category: "gov-alerts" },
+  { url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml", source: "NIST Cybersecurity", category: "gov-alerts" },
 
   // Vulnerability Alerts
   { url: "https://www.zerodayinitiative.com/rss/published/", source: "Zero Day Initiative", category: "vulnerabilities" },
